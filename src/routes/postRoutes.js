@@ -6,7 +6,7 @@ const {post} =   postControllers
 const upload = require('../lib/upload') 
 
 const uploader = upload("/post", "POST").fields([
-    { name: "imagepost", maxCount: 3 },
+    { name: "post", maxCount: 3 },
   ]);
  
 

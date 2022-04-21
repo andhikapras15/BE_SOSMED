@@ -3,41 +3,46 @@ const fs = require('fs')
 
 module.exports = {
     post: async(req,res) => {  
-        console.log(req.files) 
+        console.log('ini req.files',req.files) 
 
-        // const {image} = postimage
+        const {image} = req.files
         
-        // const {postimage} = req.files 
         const {id} = req.user
-        const {caption,image} = req.body   
-        let path = '/imagepost' 
+        const {caption} = req.body   
+        // let path = '/imagepost' 
         
-        // const imagepath = `${path}/${image[0].filename}`
+        // const imagePath = `${path}/${image.filename}`
         
-        let conn,sql 
-
+        let conn,sql  
+        if(!image){
+            return res.status(500).send({message:'foto tidak ditemukan'})
+        }
         try {  
             conn = await dbCon.promise().getConnection()
-            // sql = "select * from post where id = ?" 
-            // let[result] = await conn.query(sql,[id]) 
-            // console.log(result)
-
+            
+            await conn.beginTransaction() 
+            //masukkan data ke table post
             sql = 'insert into post set ?' 
-            let insertData = {
+            let insertData = { 
+                image: imagePath,
                 caption, 
-                image, 
                 Users_id:id
-            } 
-            let [result1] = await conn.query(sql,[insertData]) 
-            console.log(result1)  
+            }  
+            //masuk sini berarti berhasil post
+            let [result] = await conn.query(sql,insertData) 
+            console.log(result.insertId)              
            
-            return res.status(200).send({message: 'berhasil insert caption'})
+            return res.status(200).send({message: 'berhasil upload post'})
             
         } catch (error) { 
-            console.log(error)
+            console.log(error) 
+            if(imagePath){ 
+                //kalo foto sudah terupload dan gagal masuk ke sql maka fotonya dihapus
+                fs.unlinkSync('./public' + imagePath)
+            }
             return res.status(500).send({message: error.message || error})
-            
         }
     }
-}
+} 
+
 

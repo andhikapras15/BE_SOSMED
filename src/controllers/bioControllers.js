@@ -17,7 +17,7 @@ module.exports = {
             } 
             let [result] = await conn.query(sql,[update, id])
             console.log(result,'berhasil update bio') 
-            return res.status(200).send({message: 'berhasil update bio'})
+            return res.status(200).send(result)
         } catch (error) { 
             console.log(error)
             return res.status(500).send({message:error.message || error})
