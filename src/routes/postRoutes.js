@@ -7,10 +7,11 @@ const upload = require('../lib/upload')
 
 const uploader = upload("/post", "POST").fields([
     { name: "post", maxCount: 3 },
-  ]);
+  ]); 
+
  
 
-Router.post("/post",verifyTokenAccess,uploader,post) 
+Router.post("/post",verifyTokenAccess, uploader, post) 
 
 
 module.exports = Router

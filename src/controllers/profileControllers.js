@@ -30,14 +30,14 @@ module.exports = {
             await conn.query(sql, [update,req.user.id])  
             // kalo lewat sini berarti berhasil  
             console.log('berhasil update') 
-            if (imagepath){ 
-                // result[0].profilePic adalah path foto lama
-                if (result[0].profilepic){
-                    fs.unlinkSync('./public'+ result[0].profilepic)
-                }
-            }
+            // `if (imagepath){ 
+            //     // result[0].profilePic adalah path foto lama
+            //     if (result[0].profilepic){
+            //         fs.unlinkSync('./public'+ result[0].profilepic)
+            //     }
+            // }`
             conn.release()
-            return res.status(200).send({message: ' berhasil edit profilepic'},result)
+            return res.status(200).send({message: ' berhasil edit profilepic'})
         } catch (error) {   
             conn.release()
             if(imagepath){
