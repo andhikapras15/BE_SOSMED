@@ -35,13 +35,13 @@ app.get("/", (req, res) => {
   res.status(200).send({ message: "ini API MATOA 1.0" });
 });
 
-const { authRoutes,profileRoutes,postRoutes } = require("./src/routes"); 
+const { authRoutes,profileRoutes,postRoutes, postById } = require("./src/routes"); 
 
 
 // app.use("/product", productsRoutes);
 app.use("/auth", authRoutes);
 app.use('/profile', profileRoutes) 
-app.use('/post', postRoutes)
+app.use('/post', postRoutes, postById)
 // const mongoose = require("mongoose");
 
 // const mongoConnect = mongoose.connect(
