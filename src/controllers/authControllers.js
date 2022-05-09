@@ -41,7 +41,7 @@ module.exports = {
                 username: userData.username,
             }  
 
-            let sukses = myCache.set(userData.id, dataToken, 5*60) 
+            let sukses = myCache.set(userData.id, dataToken, 10*60) 
             if(!sukses){
                 throw {message: 'error caching'}
             }
@@ -62,9 +62,9 @@ module.exports = {
                     link
                 }) 
                 transporter.sendMail({
-                    from: 'tolonggg...<andhikapraset@gmail.com>',
+                    from: 'SocialMedia Email Verification<andhikapraset@gmail.com>',
                     to: userData.email,
-                    subject: 'ni verifikasi buru',
+                    subject: 'Link Email Verification',
                     html: htmlToEmail,
                 })  
                 res.set('x-token-access', tokenAccess)  
