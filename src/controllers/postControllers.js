@@ -57,6 +57,7 @@ module.exports = {
     //ngeget postingan
     getPost: async(req,res) => {
         let conn,sql 
+        let {id} = req.user 
         let {page, limit} = req.query  
 
         //inisialisasi offset limit
@@ -71,7 +72,7 @@ module.exports = {
         limit= parseInt(limit) 
         try { 
             conn = await dbCon.promise().getConnection() 
-            sql = `select post.id,caption,image, username,users_id, profilepic,(select count(*) from likes where post_id= post.id)as number_of_likes from post inner join users on post.users_id= users.id order by post.createdAt desc limit ${dbCon.escape(offset)}, 
+            sql = `select post.id,caption,image, username,users_id, profilepic,post.createdAt,if(id_like is null, 0, 1) as already_like,(select count(*) from likes where post_id= post.id)as number_of_likes from post inner join users on post.users_id= users.id left join (select id as id_like, post_id from likes where users_id = ${id}) as l on post.id = l.post_id order by post.createdAt desc limit ${dbCon.escape(offset)}, 
             ${dbCon.escape(limit)}` 
             let[result] = await conn.query(sql) 
             
@@ -126,7 +127,7 @@ module.exports = {
             conn = await dbCon.promise().getConnection() 
             // sql = `select post.id,caption,image, username,users_id, profilepic,(select count(*) from likes where post_id= post.id)as number_of_likes from post inner join users on post.users_id= users.id order by post.createdAt desc limit ${dbCon.escape(offset)}, 
             // ${dbCon.escape(limit)}` 
-            sql = `select post.id,caption,image, username,users_id,profilepic,post.createdAt, if(id_like is null, 0, 1) as already_like, (SELECT count(*) FROM likes WHERE post_id = post.id) as number_of_likes from post INNER JOIN users ON post.users_id = users.id LEFT JOIN (SELECT id as id_like, post_id FROM likes WHERE users_id = ${id}) as l ON post.id = l.post_id WHERE users.id = ${id} ORDER BY post.createdAt DESC LIMIT 
+            sql = `select post.id,caption,image, username,users_id,profilepic,post.createdAt,if(id_like is null, 0, 1) as already_like, (SELECT count(*) FROM likes WHERE post_id = post.id) as number_of_likes from post INNER JOIN users ON post.users_id = users.id LEFT JOIN (SELECT id as id_like, post_id FROM likes WHERE users_id = ${id}) as l ON post.id = l.post_id WHERE users.id = ${id} ORDER BY post.createdAt DESC LIMIT 
             ${dbCon.escape(offset)}, ${dbCon.escape(limit)}`
             let[result] = await conn.query(sql) 
             
@@ -150,25 +151,34 @@ module.exports = {
     // delete post 
     deletePost: async (req,res) => {
        
-        const {id} = req.query
-        // const {post_id} = req.query
+        const {id} = req.user 
+        const {post_id} = req.query
         
         let conn,sql
         try { 
             conn = await dbCon.promise().getConnection() 
+            await conn.beginTransaction()
 
             // sql = `select * from post where id = ?` 
             // let [result]=await conn.query(sql,id)
+            sql = `delete from comment_post where post_id=?`
+            await conn.query(sql,post_id)
+
+            sql = `delete from likes where post_id = ?`
+            await conn.query(sql, post_id)
+
+            // sql = `delete from post where users_id=?`
+            // await conn.query(sql,id)  
 
             sql = `delete from post where id = ?`
-            await conn.query(sql, id) 
+            await conn.query(sql,post_id) 
             
-            sql = `delete from post where users_id=?`
-            await conn.query(sql,id)  
 
+            conn.commit()
             conn.release()
             return res.status(200).send({message: 'delete success'})
         } catch (error) {
+            conn.rollback()
             return res.status(500).send({message: error.message || error})
         }
     }, 
@@ -291,7 +301,7 @@ module.exports = {
 
         try {
             conn = await dbCon.promise().getConnection()
-            sql = `select post.id,caption,image,username,users_id,profilepic,post.createdAt,(select count (*) from likes where post_id = post.id) as number_of_likes from post inner join users on post.users_id = users.id left join (select id as id_like, post_id from likes where users_id = ?) as l on post.id=l.post_id where post.id = ${postId}`
+            sql = `select post.id,caption,image,username,users_id,profilepic,post.createdAt,if(id_like is null, 0, 1) as already_like,(select count (*) from likes where post_id = post.id) as number_of_likes from post inner join users on post.users_id = users.id left join (select id as id_like, post_id from likes where users_id = ${id}) as l on post.id = l.post_id where post.id = ${postId}`
             let [result] = await conn.query(sql, postId) 
 
             //comment di post 
@@ -317,6 +327,24 @@ module.exports = {
             console.log(error)
             return res.status(500).send({message: error.message || error})
 
+        }
+    }, 
+    // jumlah total comment
+    countComments: async (req,res) => {
+        let {postId} = req.params
+        postId = parseInt(postId) 
+        let conn, sql 
+
+        try {
+            conn = await dbCon.promise().getConnection() 
+
+            sql = `select count(comment) as comments from comment_post where post_id = ?`
+            let [result] = await conn.query(sql, postId) 
+            conn.release()
+            return res.status(200).send(result[0])
+        } catch (error) {
+            console.log(error)
+            return res.status(500).send({message: error.message || error})
         }
     }
 } 

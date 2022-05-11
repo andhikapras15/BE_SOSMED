@@ -23,7 +23,7 @@ module.exports = {
             let[result] = await conn.query(sql,[username,email,password])
             console.log(result)
             if (!result.length){
-                throw {message: 'user tidak ditemukan'}
+                throw {message: 'users not found'}
             }  
 
             // let dataToken = {
@@ -44,8 +44,8 @@ module.exports = {
         }
     }, 
     registerService: async (data) =>{
+        let {username,email,password} = data
         let conn,sql 
-        let {username,email,password}= data
         try {
             conn = await dbCon.promise().getConnection()
             let regex = new RegExp(/ /g)
@@ -56,7 +56,7 @@ module.exports = {
             sql = `select id from users where username = ? or email = ?`
             let [result] = await conn.query(sql, [username,email])
             if (result.length){
-                throw{message: 'username atau email telah digunakan'}
+                throw {message: 'username or email already used'}
             } 
             sql = `insert into users set ?`
             let insertData = {
@@ -76,6 +76,8 @@ module.exports = {
             conn.release()
             console.log(error)
             throw new Error(error.message||error)
+            // return res.status(500).send({message:error.message || error})
+
         }
     },
 }

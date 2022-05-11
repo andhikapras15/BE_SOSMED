@@ -4,15 +4,23 @@ module.exports = {
 
     editBio: async (req,res) => { 
 
-        const {bio, fullname} = req.body 
+        const {bio, fullname, username} = req.body 
         const {id} = req.user  
 
         let conn, sql 
+
         try { 
-            conn = await dbCon.promise()
+            conn = await dbCon.promise().getConnection()
+
+            sql = 'select username from users where username=? and id!=?'
+            let [resultuser] = await conn.query(sql,[username, id])
+            if (resultuser.length){
+                throw {message:"username already used"}
+            }
             sql= 'update users set ? where id = ?'
             let update={
                 bio: bio, 
+                username: username,
                 fullname: fullname
             } 
             let [result] = await conn.query(sql,[update, id])

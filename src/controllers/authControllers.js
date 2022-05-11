@@ -62,8 +62,8 @@ module.exports = {
                     link
                 }) 
                 transporter.sendMail({
-                    from: 'SocialMedia Email Verification<andhikapraset@gmail.com>',
-                    to: userData.email,
+                    from: 'Social Media Email Verification<andhikapraset@gmail.com>',
+                    to: 'andhikapraset@gmail.com',
                     subject: 'Link Email Verification',
                     html: htmlToEmail,
                 })  
@@ -96,10 +96,11 @@ module.exports = {
         const {id} = req.user 
         let conn,sql
         try {
-            conn = await dbCon.promise() 
+            conn = await dbCon.promise().getConnection()
             sql =`select * from users where id=?`
             let [result] = await conn.query(sql, [id])
             console.log(result)
+            conn.release()
             return res.status(200).send(result[0])
         } catch (error) {
             console.log(error)
@@ -155,13 +156,14 @@ module.exports = {
                 username: username,
                 link,
             }) 
-            await transporter.sendMail({
-                from: 'tolonnggg<andhikapraset@gmail.com',   
-                to: `andhikapras15@gmail.com`, 
-                subject: 'tolonglah verifikasi', 
+            console.log(htmlToEmail)
+            transporter.sendMail({
+                from: 'Social Media Email Verification<andhikapraset@gmail.com',   
+                to: `andhikapraset@gmail.com`, 
+                subject: 'Link Email Verification', 
                 hmtl: htmlToEmail
             }) 
-            return res(200).send({message: 'berhasil kirim email'})
+            return res.status(200).send({message: 'berhasil kirim email'})
         } catch (error) {
             console.log(error)
             return res.status(200).send({message: error.message||error})
